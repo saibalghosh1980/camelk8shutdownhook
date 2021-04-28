@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: camlek8shutdown-deployment
+  labels:
+    app: deployment-camlek8shutdown
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-camlek8shutdown
+  template:
+    metadata:
+      labels:
+        app: pod-camlek8shutdown
+    spec:
+      containers:
+      - name: camlek8shutdown
+        image: saibalkumarghosh/camlek8shutdown:latest
+        lifecycle:
+          preStop:
+            httpGet:
+              path: /prestop
+              port: 8080      
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          failureThreshold: 30
+          periodSeconds: 5
+      terminationGracePeriodSeconds: 60
