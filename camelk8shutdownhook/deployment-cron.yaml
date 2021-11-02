@@ -1,0 +1,37 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: camelk8shutdown
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: camlek8shutdown
+            image: saibalkumarghosh/camlek8shutdown:latest
+            imagePullPolicy: Always
+            lifecycle:
+              preStop:
+                httpGet:
+                  path: /prestop
+                  port: 8080      
+            ports:
+            - containerPort: 8080
+            livenessProbe:
+              httpGet:
+                path: /actuator/health
+                port: 8080
+              initialDelaySeconds: 3
+              periodSeconds: 10
+            startupProbe:
+              httpGet:
+                path: /actuator/health
+                port: 8080
+              failureThreshold: 30
+              periodSeconds: 5
+          terminationGracePeriodSeconds: 30
